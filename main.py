@@ -2,7 +2,8 @@ import telebot
 import datetime
 
 TOKEN = '6292995887:AAH109q8qeYXlXonXO-PbJ3kcEPkYq0APds'
-ADMIN_USER_ID = '827112414'
+ADMIN_USER_IDS = ['827112414', '979183804', '948659699']
+
 
 bot = telebot.TeleBot(TOKEN)
 
@@ -42,19 +43,20 @@ def get_feedback_rating(message):
         bot.register_next_step_handler(message, get_feedback_rating)
 
 def send_feedback_to_admin(message):
-    """Отправляет отзыв и рейтинг администратору"""
+    """Отправляет отзыв и рейтинг администраторам"""
     user_id = message.from_user.id
     user_name = message.from_user.username
     feedback_text = feedbacks[-1]['feedback_text']
     feedback_rating = feedbacks[-1]['feedback_rating']
     feedback_time = feedbacks[-1]['feedback_time']
     feedback_str = f"Новый отзыв от пользователя {user_id} (@{user_name}):\n\n{feedback_text}\n\nРейтинг: {feedback_rating}\nДата и время: {feedback_time}"
-    bot.send_message(chat_id = ADMIN_USER_ID, text = feedback_str)
+    for admin_id in ADMIN_USER_IDS:
+        bot.send_message(chat_id=admin_id, text=feedback_str)
 
 @bot.message_handler(commands=['info_admin'])
 def feedbacks_admin(message):
-    """Отправляет администратору список всех оставленных отзывов"""
-    if str(message.from_user.id) == ADMIN_USER_ID:
+    """Отправляет администраторам список всех оставленных отзывов"""
+    if str(message.from_user.id) in ADMIN_USER_IDS:
         if len(feedbacks) == 0:
             bot.send_message(chat_id=message.chat.id, text="Пока нет ни одного отзыва.")
         else:
@@ -68,6 +70,7 @@ def feedbacks_admin(message):
                 bot.send_message(chat_id=message.chat.id, text=feedback_str)
     else:
         bot.send_message(chat_id=message.chat.id, text="Вы не являетесь администратором.")
+
 
 @bot.message_handler(func=lambda message: True)
 def echo_all(message):
